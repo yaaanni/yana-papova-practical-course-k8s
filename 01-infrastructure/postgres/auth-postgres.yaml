@@ -1,0 +1,17 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: auth-postgres
+spec: 
+  imageName: ghcr.io/cloudnative-pg/postgresql:16
+  instances: 1
+  storage:
+    size: 200Mi 
+  bootstrap:
+    initdb:
+      database: users
+      owner: user
+      secret:
+        name: auth-postgres-credentials
+
+        

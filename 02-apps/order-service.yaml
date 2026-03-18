@@ -1,0 +1,71 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: order-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: order-service
+  template:
+    metadata:
+      labels:
+        app: order-service
+    spec:
+      containers:
+        - name: order-service
+          image: yaaanni/order-service:v5
+          ports:
+            - containerPort: 8080
+          livenessProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: 8080
+            initialDelaySeconds: 60  
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /actuator/health/readiness
+              port: 8080
+            initialDelaySeconds: 65  
+            periodSeconds: 10
+            failureThreshold: 3
+          env:
+            - name: SPRING_DATASOURCE_URL
+              value: "jdbc:postgresql://order-postgres-rw:5432/orders"           
+            - name: SPRING_DATASOURCE_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: order-postgres-credentials
+                  key: username
+            - name: SPRING_DATASOURCE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: order-postgres-credentials
+                  key: password
+            - name: SPRING_PROFILES_ACTIVE
+              value: "docker"
+            - name: EXTERNAL_USER_SERVICE_URL
+              value: "http://user-service:80"
+            - name: SPRING_KAFKA_BOOTSTRAP_SERVERS
+              value: "kafka-kafka-bootstrap:9092"
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: order-service-secrets
+                  key: JWT_SECRET
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: order-service
+spec:
+  selector:
+    app: order-service
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8080
+  type: ClusterIP
