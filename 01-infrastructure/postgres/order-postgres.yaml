@@ -1,0 +1,15 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: order-postgres
+spec: 
+  imageName: ghcr.io/cloudnative-pg/postgresql:16
+  instances: 1
+  storage:
+    size: 200Mi 
+  bootstrap:
+    initdb:
+      database: orders
+      owner: user
+      secret:
+        name: order-postgres-credentials

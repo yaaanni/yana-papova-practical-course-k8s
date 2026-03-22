@@ -1,0 +1,68 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: payment-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: payment-service
+  template:
+    metadata:
+      labels:
+        app: payment-service
+      annotations:
+        prometheus.io/scrape: "true"         
+        prometheus.io/path: "/actuator/prometheus" 
+        prometheus.io/port: "8080"
+    spec:
+      containers:
+        - name: payment-service
+          image: yaaanni/payment-service:v4
+          ports:
+            - containerPort: 8080
+          livenessProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: 8080
+            initialDelaySeconds: 60  
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /actuator/health/readiness
+              port: 8080
+            initialDelaySeconds: 65  
+            periodSeconds: 10
+            failureThreshold: 3
+          env:
+            - name: MONGO_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: user-mongo-credentials
+                  key: password
+            - name: MONGO_URL
+              value: "mongodb://yana:$(MONGO_PASSWORD)@payment-init-mongo-svc.default.svc.cluster.local:27017/payments?authSource=payments&replicaSet=payment-init-mongo&authMechanism=SCRAM-SHA-256"
+            - name: EXTERNAL_PAYMENT_SERVICE_URL
+              value: "https://www.random.org"
+            - name: SPRING_KAFKA_BOOTSTRAP_SERVERS
+              value: "kafka-kafka-bootstrap:9092"
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: payment-service-secrets
+                  key: JWT_SECRET
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: payment-service
+spec:
+  selector:
+    app: payment-service
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8080
+  type: ClusterIP
