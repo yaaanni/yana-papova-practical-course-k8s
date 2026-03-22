@@ -11,10 +11,14 @@ spec:
     metadata:
       labels:
         app: user-service
+      annotations:
+        prometheus.io/scrape: "true"         
+        prometheus.io/path: "/actuator/prometheus" 
+        prometheus.io/port: "8080"
     spec:
       containers:
         - name: user-service
-          image: yaaanni/user-service:v3
+          image: yaaanni/user-service:v4
           ports:
             - containerPort: 8080
           livenessProbe:

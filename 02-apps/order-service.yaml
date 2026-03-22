@@ -11,10 +11,14 @@ spec:
     metadata:
       labels:
         app: order-service
+      annotations:
+        prometheus.io/scrape: "true"         
+        prometheus.io/path: "/actuator/prometheus" 
+        prometheus.io/port: "8080"
     spec:
       containers:
         - name: order-service
-          image: yaaanni/order-service:v5
+          image: yaaanni/order-service:v6
           ports:
             - containerPort: 8080
           livenessProbe:

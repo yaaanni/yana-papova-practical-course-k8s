@@ -11,10 +11,14 @@ spec:
     metadata:
       labels:
         app: api-gateway
+      annotations:
+        prometheus.io/scrape: "true"         
+        prometheus.io/path: "/actuator/prometheus" 
+        prometheus.io/port: "8080"
     spec:
       containers:
         - name: api-gateway
-          image: yaaanni/api-gateway:v1
+          image: yaaanni/api-gateway:v2
           ports:
             - containerPort: 8080
           livenessProbe:

@@ -11,10 +11,14 @@ spec:
     metadata:
       labels:
         app: payment-service
+      annotations:
+        prometheus.io/scrape: "true"         
+        prometheus.io/path: "/actuator/prometheus" 
+        prometheus.io/port: "8080"
     spec:
       containers:
         - name: payment-service
-          image: yaaanni/payment-service:v3
+          image: yaaanni/payment-service:v4
           ports:
             - containerPort: 8080
           livenessProbe:
